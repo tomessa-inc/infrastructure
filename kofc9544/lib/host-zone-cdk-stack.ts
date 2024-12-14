@@ -63,11 +63,6 @@ export class HostZoneCdkStack extends cdk.Stack {
     static async generateDNS(construct:Construct, domain:string, entry:string) {
         const myHostedZone = this.getHostZone(construct, entry)
 
-        console.log('the entry')
-        console.log(entry);
-        console.log("myHostedZone");
-        console.log(myHostedZone)
-
         return new route53.ARecord(construct, `Route53Entry-${domain}-${entry}`, {
             zone: myHostedZone,
             target: route53.RecordTarget.fromAlias(new CloudFrontTarget(CloudFrontCdkStack.getDistribution(construct, domain))),

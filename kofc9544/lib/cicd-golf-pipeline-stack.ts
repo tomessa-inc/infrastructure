@@ -13,12 +13,14 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import {S3BucketStack} from "./s3-bucket-stack";
 
 declare const codePipeline: codepipeline.Pipeline;
-const sourceArtifact = new codepipeline.Artifact("SourceArtifactAdmin");
+const sourceArtifact = new codepipeline.Artifact("SourceArtifactGolf");
 
-const buildArtifactStage = new codepipeline.Artifact("buildArtifactStageAdmin");
-const projectName = 'mamboleofc-members'
+const buildArtifactStage = new codepipeline.Artifact("buildArtifactStageGolf");
+const buildArtifactProduction = new codepipeline.Artifact("buildArtifactProductionGolf");
 
-export class CicdAdminPipelineStack extends cdk.Stack {
+const projectName = 'kofc9544-golf';
+
+export class CicdGolfPipelineStack extends cdk.Stack {
     declare myZone: route53.HostedZone;
 
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -31,7 +33,7 @@ export class CicdAdminPipelineStack extends cdk.Stack {
                     actionName: 'GitHub_Source',
                     owner: 'tomessa-inc',
                     repo: projectName,
-                    connectionArn: 'arn:aws:codestar-connections:us-east-1:058264500305:connection/18fd2605-b71e-49e6-b5a1-391b70aae91a',
+                    connectionArn: 'arn:aws:codestar-connections:us-east-1:767397839074:connection/3f4d5fbd-ac3a-4e58-b1e8-b85fe3a86419',
                     output: sourceArtifact,
                     branch: 'main', // default: 'master',
                 }),
@@ -44,7 +46,7 @@ export class CicdAdminPipelineStack extends cdk.Stack {
                 new pipelineactions.CodeBuildAction({
                     actionName: "CodeBuild",
                     input: sourceArtifact,
-                    project: CodeBuildCdkStack.getCodebuild(this, "admin", "admin.mamboleofc.ca"),
+                    project: CodeBuildCdkStack.getCodebuild(this, "golf-stage", "golf-stage.kofc9544.ca"),
                     outputs: [buildArtifactStage],
                     combineBatchBuildArtifacts: true,
                     environmentVariables: {},
@@ -57,16 +59,50 @@ export class CicdAdminPipelineStack extends cdk.Stack {
             actions: [
                 new pipelineactions.S3DeployAction({
                     actionName: 'S3Deploy',
-                    bucket: S3BucketStack.getS3Bucket(this, 'admin.mamboleofc.ca', "pipeline-admin"),
+                    bucket: S3BucketStack.getS3Bucket(this, 'golf-stage.kofc9544.ca', "pipeline-golf-stage"),
                     input: buildArtifactStage
                 })]
         }
 
 
-        const pipelineAPI = new codepipeline.Pipeline(this, "CICDCdkStack", {
-            pipelineName: "mamboleofc-admin-pipeline",
-            stages: [sourceStage,  buildStage, deployStage],
-            artifactBucket: S3BucketStack.generateDynamicS3Bucket(this, "code-pipeline-admin-058264500305"),
+        const Approval = {
+            stageName: "Approval",
+            actions: [
+                new pipelineactions.ManualApprovalAction({
+                    actionName: "Approval",
+                }),
+            ],
+        };
+
+        const buildProduction = {
+            stageName: "Build-Production",
+            actions: [
+                new pipelineactions.CodeBuildAction({
+                    actionName: "CodeBuild",
+                    input: sourceArtifact,
+                    project: CodeBuildCdkStack.getCodebuild(this, "golf", "golf.kofc9544.ca"),
+                    outputs: [buildArtifactProduction],
+                    combineBatchBuildArtifacts: true,
+                    environmentVariables: {},
+                }),
+            ],
+        };
+
+        const deployProduction = {
+            stageName: "Deploy-to-Production",
+            actions: [
+                new pipelineactions.S3DeployAction({
+                    actionName: 'S3Deploy',
+                    bucket: S3BucketStack.getS3Bucket(this, 'golf.kofc9544.ca', "pipeline-golf"),
+                    input: buildArtifactStage
+                })]
+        }
+
+
+        const pipelineAPI = new codepipeline.Pipeline(this, "CICDGolfCdkStack", {
+            pipelineName: "golf-pipeline",
+            stages: [sourceStage,  buildStage, deployStage, Approval, buildProduction, deployProduction],
+            artifactBucket: S3BucketStack.generateDynamicS3Bucket(this, "code-pipeline-golf-767397839074"),
             crossAccountKeys: false,
             role: IAMRoleStack.getCICDRole(this, "api-pipeline-role"),
             //pipelineType: PipelineType.V2,

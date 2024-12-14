@@ -26,7 +26,7 @@ export class CertificationCdkStack extends cdk.Stack {
         const hostZoneName = HostZoneCdkStack.getHostZoneName();
         this._certificate  = new acm.Certificate(this, 'SiteDomainCertification', {
             domainName: `*.${hostZoneName}`,
-            certificateName: 'Site Certification for mamboleofc.ca', // Optionally provide an certificate name
+            certificateName: 'Site Certification for kofc9544.ca', // Optionally provide an certificate name
             validation: acm.CertificateValidation.fromDns(HostZoneCdkStack.getHostZone(this, 'Route53ZoneCertification')),
         });
     }

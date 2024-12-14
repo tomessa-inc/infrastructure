@@ -94,11 +94,6 @@ export class APICICDCdkStack extends cdk.Stack {
 
         const policy = iam.Policy.fromPolicyName(this, 'testingPolicy','AmazonS3FullAccess');
 
-  //      console.log('policy');
-    //    console.log(policy);
-//        codeBuildRole.addManagedPolicy(policy.);
-//           codeBuildRole.addToPrincipalPolicy(policy)
-     //     codeBuildRole.attachInlinePolicy(policy.)
 
     
 

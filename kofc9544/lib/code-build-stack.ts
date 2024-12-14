@@ -44,14 +44,23 @@ export class CodeBuildCdkStack extends cdk.Stack {
             case "production-api":
                 path = "kofc9544-api/BuildProductionArtifact"
                 break;
-            case "admin":
-                path = "kofc9544-admin/BuildArtifactAdmin"
+            case "golf":
+                path = "kofc9544-golf/BuildGolfArtifact"
+                break;
+            case "golf-stage":
+                path = "kofc9544-golf/BuildGolfStageArtifact"
+                break;
+
+            case "member":
+                path = "kofc9544-member/BuildMemberArtifact"
+                break;
+            case "member-stage":
+                path = "kofc9544-member/BuildMemberStageArtifact"
                 break;
 
 
         }
-        console.log('the path')
-        console.log(path);
+
         if (!codeBuildRole) {
             codeBuildRole = IAMRoleStack.getCodeBuildRole(construct,`${name}-codebuild`)
         }

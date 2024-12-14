@@ -17,9 +17,9 @@ const sourceArtifact = new codepipeline.Artifact("SourceArtifact");
 
 const buildArtifactStage = new codepipeline.Artifact("buildArtifactStage");
 const buildArtifactProduction = new codepipeline.Artifact("buildArtifactProduction");
-const projectName = 'mamboleofc-frontend'
+const projectName = 'kofc9544-frontend';
 
-export class CICDCdkStack extends cdk.Stack {
+export class KOFCCICDCdkStack extends cdk.Stack {
   declare myZone: route53.HostedZone;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -30,9 +30,9 @@ export class CICDCdkStack extends cdk.Stack {
       actions: [
         new CodeStarConnectionsSourceAction({
           actionName: 'GitHub_Source',
-          owner: 'tomvisions',
+          owner: 'tomessa-inc',
           repo: projectName,
-          connectionArn: 'arn:aws:codestar-connections:us-east-1:058264500305:connection/18fd2605-b71e-49e6-b5a1-391b70aae91a',
+          connectionArn: 'arn:aws:codestar-connections:us-east-1:767397839074:connection/3f4d5fbd-ac3a-4e58-b1e8-b85fe3a86419',
           output: sourceArtifact,
           branch: 'main', // default: 'master',
         }),
@@ -54,7 +54,7 @@ export class CICDCdkStack extends cdk.Stack {
         new pipelineactions.CodeBuildAction({
           actionName: "CodeBuild",
           input: sourceArtifact,
-          project: CodeBuildCdkStack.getCodebuild(this, "stage", "stage.mamboleofc.ca"),
+          project: CodeBuildCdkStack.getCodebuild(this, "stage", "stage.kofc9544.ca"),
           outputs: [buildArtifactStage],
           combineBatchBuildArtifacts: true,
           environmentVariables: {},
@@ -67,7 +67,7 @@ export class CICDCdkStack extends cdk.Stack {
       actions: [
         new pipelineactions.S3DeployAction({
           actionName: 'S3Deploy',
-          bucket: S3BucketStack.getS3Bucket(this, 'stage.mamboleofc.ca', "pipeline"),
+          bucket: S3BucketStack.getS3Bucket(this, 'stage.kofc9544.ca', "pipeline"),
           input: buildArtifactStage
         })]
     }
@@ -80,7 +80,7 @@ export class CICDCdkStack extends cdk.Stack {
         new pipelineactions.CodeBuildAction({
           actionName: "CodeBuild",
           input: sourceArtifact,
-          project: CodeBuildCdkStack.getCodebuild(this, "production", "www.mamboleofc.ca"),
+          project: CodeBuildCdkStack.getCodebuild(this, "production", "www.kofc9544.ca"),
           outputs: [buildArtifactProduction],
           environmentVariables: {},
         }),
@@ -93,15 +93,15 @@ export class CICDCdkStack extends cdk.Stack {
       actions: [
         new pipelineactions.S3DeployAction({
           actionName: 'S3Deploy',
-          bucket: S3BucketStack.getS3Bucket(this, 'www.mamboleofc.ca', "pipeline"),
+          bucket: S3BucketStack.getS3Bucket(this, 'www.kofc9544.ca', "pipeline"),
           input: buildArtifactProduction
         })]
     }
 
     const pipelineAPI = new codepipeline.Pipeline(this, "CICDCdkStack", {
-      pipelineName: "mamboleofc-frontend-pipeline",
+      pipelineName: "frontend-pipeline",
       stages: [sourceStage,  buildStage, deployStage,  Approval, buildProduction, deployProduction],
-      artifactBucket: S3BucketStack.generateDynamicS3Bucket(this, "code-pipeline-058264500305"),
+      artifactBucket: S3BucketStack.generateDynamicS3Bucket(this, "code-pipeline-767397839074"),
       crossAccountKeys: false,
       role: IAMRoleStack.getCICDRole(this, "api-pipeline-role"),
       //pipelineType: PipelineType.V2,

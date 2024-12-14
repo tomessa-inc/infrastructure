@@ -11,13 +11,13 @@ import {S3BucketStack} from "./s3-bucket-stack";
 import {HostZoneCdkStack} from "./host-zone-cdk-stack";
 
 
-const distributionIdMediaMamboleofcCa = cdk.Fn.importValue(`distributionId-media-mamboleofc-ca`)
-const distributionIdStageMamboleofcCa = cdk.Fn.importValue(`distributionId-stage-mamboleofc-ca`)
-const distributionIdWwwMamboleofcCa = cdk.Fn.importValue(`distributionId-www-mamboleofc-ca`)
-
-const distributionDomainNameMediaMamboleofcCa = cdk.Fn.importValue(`distributionDomainName-media-mamboleofc-ca`)
-const distributionDomainNameStageMamboleofcCa = cdk.Fn.importValue(`distributionDomainName-stage-mamboleofc-ca`)
-const distributionDomainNameWwwMamboleofcCa = cdk.Fn.importValue(`distributionDomainName-www-mamboleofc-ca`)
+const distributionMedia = {id: cdk.Fn.importValue(`distributionId-media-kofc9544-ca`), name:cdk.Fn.importValue(`distributionDomainName-media-kofc9544-ca`) }
+const distributionStage = {id: cdk.Fn.importValue(`distributionId-stage-kofc9544-ca`), name:cdk.Fn.importValue(`distributionDomainName-stage-kofc9544-ca`) }
+const distributionWww = {id: cdk.Fn.importValue(`distributionId-www-kofc9544-ca`), name:cdk.Fn.importValue(`distributionDomainName-www-kofc9544-ca`) }
+const distributionMember = {id: cdk.Fn.importValue(`distributionId-member-kofc9544-ca`), name:cdk.Fn.importValue(`distributionDomainName-member-kofc9544-ca`) }
+const distributionMemberStage = {id: cdk.Fn.importValue(`distributionId-media-stage-kofc9544-ca`), name:cdk.Fn.importValue(`distributionDomainName-member-stage-kofc9544-ca`) }
+const distributionGolf = {id: cdk.Fn.importValue(`distributionId-golf-kofc9544-ca`), name:cdk.Fn.importValue(`distributionDomainName-golf-kofc9544-ca`) }
+const distributionGolfStage = {id: cdk.Fn.importValue(`distributionId-golf-stage-kofc9544-ca`), name:cdk.Fn.importValue(`distributionDomainName-golf-stage-kofc9544-ca`) }
 
 var boo:any;
 var cfnOriginAccessControl:any;
@@ -35,7 +35,7 @@ export class CloudFrontCdkStack extends cdk.Stack {
     }
 
     async generateIdentity(domainName:string) {
-        this._oai = new cloudfront.OriginAccessIdentity(this, `cloudfront-OAI-${domainName}`, {
+        this._oai = new cloudfront.OriginAccessIdentity(this, `cloudfront-OAI-for-${domainName}`, {
             comment: `OAI for ${domainName}`,
 
         });
@@ -56,7 +56,12 @@ export class CloudFrontCdkStack extends cdk.Stack {
         });
     }
 
-    async generateCloudFrontDistribution(domainName:string) {
+    async generateCloudFrontDistribution(domainName:string, entry: string) {
+
+        const nocache = {
+            cachePolicyId: "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+        }
+
 
       /*  cfnOriginAccessControl = new cloudfront.CfnOriginAccessControl(this, 'MyCfnOriginAccessControl', {
             originAccessControlConfig: {
@@ -109,7 +114,7 @@ export class CloudFrontCdkStack extends cdk.Stack {
             comment: `OAI for ${domainName}`,
 
         });
-        ;
+
         // CloudFront distribution
        this._distribution = new cloudfront.Distribution(this, `Distribution-${domainName}`, {
             certificate: CertificationCdkStack.getCertification(this, `distro-for-${domainName}`),
@@ -138,7 +143,7 @@ export class CloudFrontCdkStack extends cdk.Stack {
                 allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
                 originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
                 viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-                cachePolicy: this._cachePolicy,
+                cachePolicy: entry.includes('stage') ? nocache : this._cachePolicy,
             },
             comment: `Distribution for ${domainName}`
         })
@@ -172,46 +177,67 @@ export class CloudFrontCdkStack extends cdk.Stack {
     }
 
     async generateComponent(domain:string, entry: string) {
-     //   await this.generateIdentity(domain)
+      //  await this.generateIdentity(domain)
       //  await this.generateTest();
-        await this.generateCloudFrontDistribution(domain);
+        await this.generateCloudFrontDistribution(domain, entry);
         await this.generateOutputs(domain);
         await HostZoneCdkStack.generateDNS(this, domain, entry)
     }
 
     async initialize() {
         this.generateCachePolicy();
-     //  await this.generateComponent('media.mamboleofc.ca', "media")
-      // await this.generateComponent('stage.mamboleofc.ca',  "stage")
-       //await this.generateComponent('www.mamboleofc.ca',  "www");
-        //222222222222await this.generateComponent('admin.mamboleofc.ca',  "admin");
+        await this.generateComponent('www.kofc9544.ca', "www")
+        await this.generateComponent('stage.kofc9544.ca',  "stage")
+        await this.generateComponent('golf.kofc9544.ca', "golf")
+        await this.generateComponent('golf-stage.kofc9544.ca',  "golf-stage")
+        await this.generateComponent('member.kofc9544.ca',  "member");
+        await this.generateComponent('member-stage.kofc9544.ca',  "member-stage");
 
     }
 
 
     static getDistribution(construct: Construct, domain: string) {
-        console.log(domain);
+      //  console.log(domain);
         let id:string;
         let name: string;
         switch(domain) {
-            case "media.mamboleofc.ca":
-            id = distributionIdMediaMamboleofcCa;
-            name = distributionDomainNameMediaMamboleofcCa;
+            case "media.kofc9544.ca":
+            id = distributionMedia.id;
+            name = distributionMedia.name;
             break;
-            case "stage.mamboleofc.ca":
-                id = distributionIdStageMamboleofcCa;
-                name = distributionDomainNameStageMamboleofcCa
+            case "stage.kofc9544.ca":
+                id = distributionStage.id;
+                name = distributionStage.name
                 break;
+            case "golf.kofc9544.ca":
+                id = distributionGolf.id;
+                name = distributionGolf.name
+                break;
+
+            case "golf-stage.kofc9544.ca":
+                id = distributionGolfStage.id;
+                name = distributionGolfStage.name
+                break;
+            case "member-stage.kofc9544.ca":
+                id = distributionMemberStage.id;
+                name = distributionMemberStage.name
+                break;
+
+            case "member.kofc9544.ca":
+                id = distributionMember.id;
+                name = distributionMember.name
+                break;
+
             default:
-                id = distributionIdWwwMamboleofcCa;
-                name = distributionDomainNameWwwMamboleofcCa
+                id = distributionWww.id;
+                name = distributionWww.name
                 break;
         }
 
-        console.log('the id')
-        console.log(id)
-        console.log('domainname')
-        console.log(domain)
+//        console.log('the id')
+  //      console.log(id)
+    //    console.log('domainname')
+      //  console.log(domain)
 
         return cloudfront.Distribution.fromDistributionAttributes(construct, `Route53Zone-${domain}`,
             {domainName:name, distributionId: id})

@@ -7,6 +7,10 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 const mediaBucketArn  = cdk.Fn.importValue('bucketOutput-media-kofc9544-ca-Arn')
 const stageBucketArn  = cdk.Fn.importValue('bucketOutput-stage-kofc9544-ca-Arn')
 const wwwBucketArn  = cdk.Fn.importValue('bucketOutput-www-kofc9544-ca-Arn')
+const memberBucketArn  = cdk.Fn.importValue('bucketOutput-member-kofc9544-ca-Arn')
+const memberStageBucketArn  = cdk.Fn.importValue('bucketOutput-member-stage-kofc9544-ca-Arn')
+const golfBucketArn  = cdk.Fn.importValue('bucketOutput-golf-kofc9544-ca-Arn')
+const golfStageBucketArn  = cdk.Fn.importValue('bucketOutput-golf-stage-kofc9544-ca-Arn')
 
 let bucketPipeline:cdk.aws_s3.Bucket;
 let  bucketName:any
@@ -21,12 +25,25 @@ export class S3BucketStack extends Stack {
         static getS3Bucket(construct: Construct, domainName: string, identifier:string) {
         let arn;
             switch(domainName) {
-                case "media.mamboleofc.ca":
+                case "media.kofc9544.ca":
                     arn = mediaBucketArn
                     break;
-                case "stage.mamboleofc.ca":
+                case "stage.kofc9544.ca":
                     arn = stageBucketArn
                     break;
+                case "golf.kofc9544.ca":
+                    arn = golfBucketArn
+                    break;
+                case "golf-stage.kofc9544.ca":
+                    arn = golfStageBucketArn
+                    break;
+                case "member.kofc9544.ca":
+                    arn = memberBucketArn
+                    break;
+                case "member-stage.kofc9544.ca":
+                    arn = memberStageBucketArn
+                    break;
+
                 default:
                     arn = wwwBucketArn
                     break;
@@ -125,13 +142,16 @@ export class S3BucketStack extends Stack {
 
         bucketName = this.node.tryGetContext("domain") ?? bucketName;
 */
+        this.generateBucketComponent('kofc9544-config');
         this.generateBucketComponent('images.kofc9544.ca');
         this.generateBucketComponent('media.kofc9544.ca');
         this.generateBucketComponent('stage.kofc9544.ca');
         this.generateBucketComponent('www.kofc9544.ca');
         this.generateBucketComponent('kofc9544-api-stage');
         this.generateBucketComponent('kofc9544-api-production');
-        this.generateBucketComponent('admin.kofc9544.ca');
-
+        this.generateBucketComponent('member.kofc9544.ca');
+        this.generateBucketComponent('member-stage.kofc9544.ca');
+        this.generateBucketComponent('golf.kofc9544.ca');
+        this.generateBucketComponent('golf-stage.kofc9544.ca');
     }
 }
